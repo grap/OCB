@@ -629,7 +629,7 @@ class sale_order_line(osv.osv):
             warning_msgs += _("Not enough stock ! : ") + warn_msg + "\n\n"
 
         #update of warning messages
-        if warning_msgs:
+        if False and warning_msgs:
             warning = {
                        'title': _('Configuration Error!'),
                        'message' : warning_msgs
