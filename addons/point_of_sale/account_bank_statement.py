@@ -11,6 +11,10 @@ class account_journal(osv.osv):
         'journal_user': fields.boolean('Active in Point of Sale', help="Check this box if this journal define a payment method that can be used in a point of sale."),
 
         'amount_authorized_diff' : fields.float('Amount Authorized Difference', help="This field depicts the maximum difference allowed between the ending balance and the theoretical cash when closing a session, for non-POS managers. If this maximum is reached, the user will have an error message at the closing of his session saying that he needs to contact his manager."),
+
+        'pos_image': fields.binary(
+            'PoS Image', help="This field holds the image used in the"
+            " PoS Front End UI."),
     }
 
 
