@@ -480,7 +480,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         get_display_price: function(){
             var rounding = this.pos.get('currency').rounding;
-            return  round_pr(round_pr(this.get_unit_price() * this.get_quantity(),rounding) * (1- this.get_discount()/100.0),rounding);
+            return  round_pr(this.get_unit_price() * this.get_quantity() * (1- this.get_discount()/100.0), rounding);
         },
         get_price_without_tax: function(){
             return this.get_all_prices().priceWithoutTax;
@@ -494,7 +494,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         get_all_prices: function(){
             var self = this;
             var currency_rounding = this.pos.get('currency').rounding;
-            var base = round_pr(round_pr(this.get_quantity() * this.get_unit_price(), currency_rounding) * (1.0 - (this.get_discount() / 100.0)), currency_rounding);
+            var base = round_pr(this.get_quantity() * this.get_unit_price() * (1.0 - (this.get_discount() / 100.0)), currency_rounding);
             var totalTax = base;
             var totalNoTax = base;
             
