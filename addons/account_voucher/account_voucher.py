@@ -876,7 +876,7 @@ class account_voucher(osv.osv):
         ctx = context.copy()
         ctx.update({'company_id': company_id, 'account_period_prefer_normal': True})
         voucher_currency_id = currency_id or self.pool.get('res.company').browse(cr, uid, company_id, context=ctx).currency_id.id
-        pids = period_pool.find(cr, uid, date, context=ctx)
+        pids = period_pool.find(cr, uid, dt=date, context=ctx)
         if pids:
             res['value'].update({'period_id':pids[0]})
         if payment_rate_currency_id:
