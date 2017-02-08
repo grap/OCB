@@ -1529,6 +1529,7 @@ class mail_thread(osv.AbstractModel):
                     to the related document. Should only be set by Chatter.
             :return int: ID of newly created mail.message
         """
+        return False
         if context is None:
             context = {}
         if attachments is None:
