@@ -1163,7 +1163,7 @@ class pos_order(osv.osv):
                 })
 
                 if data_type == 'product':
-                    key = ('product', values['partner_id'], values['product_id'], values['analytic_account_id'], values['debit'] > 0)
+                    key = ('product', values['partner_id'], values['account_id'], values['analytic_account_id'], values['debit'] > 0)
                 elif data_type == 'tax':
                     key = ('tax', values['partner_id'], values['tax_code_id'], values['debit'] > 0)
                 elif data_type == 'counter_part':
@@ -1249,9 +1249,9 @@ class pos_order(osv.osv):
 
                 # Create a move for the line
                 insert_data('product', {
-                    'name': line.product_id.name,
+                    'name': line.order_id.session_id.name,
                     'quantity': line.qty,
-                    'product_id': line.product_id.id,
+                    'product_id': False,
                     'account_id': income_account,
                     'analytic_account_id': self._prepare_analytic_account(cr, uid, line, context=context),
                     'credit': ((amount>0) and amount) or 0.0,
