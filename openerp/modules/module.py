@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+import ast
 import functools
 import imp
 import importlib
@@ -42,6 +43,7 @@ import openerp.release as release
 from openerp.tools.safe_eval import safe_eval as eval
 
 MANIFEST = '__openerp__.py'
+MANIFEST_NAMES = ('__manifest__.py', '__openerp__.py')
 README = ['README.rst', 'README.md', 'README.txt']
 
 _logger = logging.getLogger(__name__)
@@ -121,7 +123,9 @@ def get_module_path(module, downloaded=False, display_warning=True):
     """
     initialize_sys_path()
     for adp in ad_paths:
-        if os.path.exists(opj(adp, module, MANIFEST)) or os.path.exists(opj(adp, '%s.zip' % module)):
+        files = [opj(adp, module, manifest) for manifest in MANIFEST_NAMES] +\
+                [opj(adp, module + '.zip')]
+        if any(os.path.exists(f) for f in files):
             return opj(adp, module)
 
     if downloaded:
@@ -158,7 +162,7 @@ def get_module_filetree(module, dir='.'):
 
     return tree
 
-def get_module_resource(module, *args):
+def get_resource_path(module, *args):
     """Return the full path of a resource of the given module.
 
     :param module: module name
@@ -179,11 +183,53 @@ def get_module_resource(module, *args):
             return resource_path
     return False
 
+# backwards compatibility
+get_module_resource = get_resource_path
+
+def get_resource_from_path(path):
+    """Tries to extract the module name and the resource's relative path
+    out of an absolute resource path.
+
+    If operation is successfull, returns a tuple containing the module name, the relative path
+    to the resource using '/' as filesystem seperator[1] and the same relative path using
+    os.path.sep seperators.
+
+    [1] same convention as the resource path declaration in manifests
+
+    :param path: absolute resource path
+
+    :rtype: tuple
+    :return: tuple(module_name, relative_path, os_relative_path) if possible, else None
+    """
+    resource = False
+    for adpath in ad_paths:
+        # force trailing separator
+        adpath = os.path.join(adpath, "")
+        if os.path.commonprefix([adpath, path]) == adpath:
+            resource = path.replace(adpath, "", 1)
+            break
+
+    if resource:
+        relative = resource.split(os.path.sep)
+        if not relative[0]:
+            relative.pop(0)
+        module = relative.pop(0)
+        return (module, '/'.join(relative), os.path.sep.join(relative))
+    return None
+
 def get_module_icon(module):
     iconpath = ['static', 'description', 'icon.png']
     if get_module_resource(module, *iconpath):
         return ('/' + module + '/') + '/'.join(iconpath)
     return '/base/'  + '/'.join(iconpath)
+
+def module_manifest(path):
+    """Returns path to module manifest if one can be found under `path`, else `None`."""
+    if not path:
+        return None
+    for manifest_name in MANIFEST_NAMES:
+        if os.path.isfile(opj(path, manifest_name)):
+            return opj(path, manifest_name)
 
 def get_module_root(path):
     """
@@ -205,8 +251,8 @@ def get_module_root(path):
 
     @return:  Module root path or None if not found
     """
-    while not os.path.exists(os.path.join(path, MANIFEST)):
-        new_path = os.path.abspath(os.path.join(path, os.pardir))
+    while not module_manifest(path):
+        new_path = os.path.abspath(opj(path, os.pardir))
         if path == new_path:
             return None
         path = new_path
@@ -217,58 +263,53 @@ def load_information_from_description_file(module, mod_path=None):
     :param module: The name of the module (sale, purchase, ...)
     :param mod_path: Physical path of module, if not providedThe name of the module (sale, purchase, ...)
     """
-
     if not mod_path:
         mod_path = get_module_path(module)
-    terp_file = mod_path and opj(mod_path, MANIFEST) or False
-    if terp_file:
-        info = {}
-        if os.path.isfile(terp_file):
-            # default values for descriptor
-            info = {
-                'application': False,
-                'author': '',
-                'auto_install': False,
-                'category': 'Uncategorized',
-                'depends': [],
-                'description': '',
-                'icon': get_module_icon(module),
-                'installable': True,
-                'license': 'AGPL-3',
-                'post_load': None,
-                'version': '1.0',
-                'web': False,
-                'website': '',
-                'sequence': 100,
-                'summary': '',
-            }
-            info.update(itertools.izip(
-                'depends data demo test init_xml update_xml demo_xml'.split(),
-                iter(list, None)))
+    manifest_file = module_manifest(mod_path)
+    if manifest_file:
+        # default values for descriptor
+        info = {
+            'application': False,
+            'author': 'Odoo S.A.',
+            'auto_install': False,
+            'category': 'Uncategorized',
+            'depends': [],
+            'description': '',
+            'icon': get_module_icon(module),
+            'installable': True,
+            'license': 'LGPL-3',
+            'post_load': None,
+            'version': '1.0',
+            'web': False,
+            'website': 'https://www.odoo.com',
+            'sequence': 100,
+            'summary': '',
+        }
+        info.update(itertools.izip(
+            'depends data demo test init_xml update_xml demo_xml'.split(),
+            iter(list, None)))
 
-            f = tools.file_open(terp_file)
-            try:
-                info.update(eval(f.read()))
-            finally:
-                f.close()
+        f = tools.file_open(manifest_file)
+        try:
+            info.update(ast.literal_eval(f.read()))
+        finally:
+            f.close()
 
-            if not info.get('description'):
-                readme_path = [opj(mod_path, x) for x in README
-                               if os.path.isfile(opj(mod_path, x))]
-                if readme_path:
-                    readme_text = tools.file_open(readme_path[0]).read()
-                    info['description'] = readme_text
+        if not info.get('description'):
+            readme_path = [opj(mod_path, x) for x in README
+                           if os.path.isfile(opj(mod_path, x))]
+            if readme_path:
+                readme_text = tools.file_open(readme_path[0]).read()
+                info['description'] = readme_text
 
-            if 'active' in info:
-                # 'active' has been renamed 'auto_install'
-                info['auto_install'] = info['active']
+        if 'active' in info:
+            # 'active' has been renamed 'auto_install'
+            info['auto_install'] = info['active']
 
-            info['version'] = adapt_version(info['version'])
-            return info
+        info['version'] = adapt_version(info['version'])
+        return info
 
-    #TODO: refactor the logger in this file to follow the logging guidelines
-    #      for 6.0
-    _logger.debug('module %s: no %s file found.', module, MANIFEST)
+    _logger.debug('module %s: no manifest file found %s', module, MANIFEST_NAMES)
     return {}
 
 def init_module_models(cr, module_name, obj_list):
@@ -340,9 +381,9 @@ def get_modules():
             return name
 
         def is_really_module(name):
-            manifest_name = opj(dir, name, MANIFEST)
-            zipfile_name = opj(dir, name)
-            return os.path.isfile(manifest_name)
+            for mname in MANIFEST_NAMES:
+                if os.path.isfile(opj(dir, name, mname)):
+                    return True
         return map(clean, filter(is_really_module, os.listdir(dir)))
 
     plist = []
@@ -482,5 +523,3 @@ def unwrap_suite(test):
     for item in itertools.chain.from_iterable(
             itertools.imap(unwrap_suite, subtests)):
         yield item
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
