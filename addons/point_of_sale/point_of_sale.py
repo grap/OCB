@@ -92,6 +92,7 @@ class pos_config(osv.osv):
         'barcode_customer': fields.char('Customer Barcodes',size=64, help='The pattern that identifies customer\'s client card barcodes'),
         'barcode_price':    fields.char('Price Barcodes',   size=64, help='The pattern that identifies a product with a barcode encoded price'),
         'barcode_weight':   fields.char('Weight Barcodes',  size=64, help='The pattern that identifies a product with a barcode encoded weight'),
+        'barcode_price_to_weight':   fields.char('Price To Weight Barcodes',  size=64, help='The pattern that identifies a product with a barcode encoded price, to recompute weight'),
         'barcode_discount': fields.char('Discount Barcodes',  size=64, help='The pattern that identifies a product with a barcode encoded discount'),
     }
 
@@ -181,6 +182,7 @@ class pos_config(osv.osv):
         'barcode_weight':  '21xxxxxNNDDD', 
         'barcode_discount':'22xxxxxxxxNN', 
         'barcode_price':   '23xxxxxNNNDD', 
+        'barcode_price_to_weight': '02xxxxxNNNDD',
     }
 
     def onchange_picking_type_id(self, cr, uid, ids, picking_type_id, context=None):

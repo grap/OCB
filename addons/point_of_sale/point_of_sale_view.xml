@@ -727,6 +727,7 @@
                                 <field name="barcode_weight" />
                                 <field name="barcode_discount" />
                                 <field name="barcode_price" />
+                                <field name="barcode_price_to_weight" />
                             </group>
                         </group>
                     </sheet>

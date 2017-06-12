@@ -463,6 +463,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
                 'weight':   ['21xxxxxNNDDDx'],
                 'discount': ['22xxxxxxxxNNx'],
                 'price':    ['23xxxxxNNNDDx'],
+                'price_to_weight':    ['02xxxxxNNNDDx'],
             });
 
         },
@@ -696,7 +697,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
                 };
             }
 
-            if(parse_result.type in {'product':'', 'weight':'', 'price':''}){    //ean is associated to a product
+            if(parse_result.type in {'product':'', 'weight':'', 'price':'', 'price_to_weight': ''}){    //ean is associated to a product
                 if(this.action_callback['product']){
                     this.action_callback['product'](parse_result);
                 }

@@ -235,6 +235,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     'weight':   self.config.barcode_weight,
                     'discount': self.config.barcode_discount,
                     'price':    self.config.barcode_price,
+                    'price_to_weight':    self.config.barcode_price_to_weight,
                 });
 
                 if (self.config.company_id[0] !== self.user.company_id[0]) {
@@ -649,6 +650,13 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 selectedOrder.addProduct(product, {quantity:parsed_code.value, merge:false});
             }else if(parsed_code.type === 'discount'){
                 selectedOrder.addProduct(product, {discount:parsed_code.value, merge:false});
+            }else if(parsed_code.type === 'price_to_weight'){
+                var quantity = 0;
+                var price = parseFloat(parsed_code.value) || 0;
+                if (price !== 0 && product.price !== 0){
+                    quantity = price / product.price;
+                }
+                selectedOrder.addProduct(product, {quantity:quantity, merge:false});
             }else{
                 selectedOrder.addProduct(product);
             }
