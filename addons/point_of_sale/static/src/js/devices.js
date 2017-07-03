@@ -463,7 +463,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
                 'weight':   ['21xxxxxNNDDDx'],
                 'discount': ['22xxxxxxxxNNx'],
                 'price':    ['23xxxxxNNNDDx'],
-                'price_to_weight':    ['02xxxxxNNNDDx'],
+                'price_to_weight':    ['20xxxxxNNNDDx'],
             });
 
         },
