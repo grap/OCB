@@ -445,8 +445,11 @@ class account_invoice(models.Model):
                     rec_dom = [('name', '=', 'property_account_receivable'), ('company_id', '=', company_id)]
                     pay_dom = [('name', '=', 'property_account_payable'), ('company_id', '=', company_id)]
                     res_dom = [('res_id', '=', 'res.partner,%s' % partner_id)]
-                    rec_prop = prop.search(rec_dom + res_dom) or prop.search(rec_dom)
-                    pay_prop = prop.search(pay_dom + res_dom) or prop.search(pay_dom)
+                    # GRAP - FIX
+                    # Possibility to have a global property and many partners property for a same company
+                    non_res_dom = [('res_id', '=', False)]
+                    rec_prop = prop.search(rec_dom + res_dom) or prop.search(rec_dom + non_res_dom)
+                    pay_prop = prop.search(pay_dom + res_dom) or prop.search(pay_dom + non_res_dom)
                     rec_account = rec_prop.get_by_record(rec_prop)
                     pay_account = pay_prop.get_by_record(pay_prop)
                     if not rec_account and not pay_account:
