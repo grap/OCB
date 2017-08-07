@@ -926,7 +926,8 @@ class pos_order(osv.osv):
 
         journal = self.pool['account.journal'].browse(cr, uid, journal_id, context=context)
         # use the company of the journal and not of the current user
-        company_cxt = dict(context, force_company=journal.company_id.id)
+        # Note : GRAP Disable this feature. We want to use the company of the user
+        company_cxt = context
         account_def = property_obj.get(cr, uid, 'property_account_receivable', 'res.partner', context=company_cxt)
         args['account_id'] = (order.partner_id and order.partner_id.property_account_receivable \
                              and order.partner_id.property_account_receivable.id) or (account_def and account_def.id) or False
