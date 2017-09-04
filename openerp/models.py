@@ -3416,15 +3416,16 @@ class BaseModel(object):
                         ', '.join(map(repr, extras._ids)),
                     ))
             # store an access error exception in existing records
+            _missing_ids = [str(x.id) for x in missing]
             exc = AccessError(
-                _('The requested operation cannot be completed due to security restrictions. Please contact your system administrator.\n\n(Document type: %s, Operation: %s)') % \
-                (self._name, 'read')
+                _('The requested operation cannot be completed due to security restrictions. Please contact your system administrator.\n\n(Document type: %s, Operation: %s, Missing Ids : %s)') % \
+                (self._name, 'read', ','.join(_missing_ids))
             )
             forbidden = missing.exists()
             forbidden._cache.update(FailedValue(exc))
             # store a missing error exception in non-existing records
             exc = MissingError(
-                _('One of the documents you are trying to access has been deleted, please try again after refreshing.')
+                _('One of the documents you are trying to access has been deleted, please try again after refreshing.\n\n(Document type: %s)' % (self._name))
             )
             (missing - forbidden)._cache.update(FailedValue(exc))
 
