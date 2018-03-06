@@ -467,7 +467,7 @@ msgstr "Impression via le posbox"
 #: code:addons/point_of_sale/static/src/xml/pos.xml:616
 #, python-format
 msgid "CHANGE"
-msgstr "Monnaie rendue"
+msgstr "RENDU"
 
 #. module: point_of_sale
 #. openerp-web
