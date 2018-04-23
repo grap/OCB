@@ -1173,7 +1173,11 @@ class product_product(osv.osv):
             # if we copy a variant or create one, we keep the same template
             default['product_tmpl_id'] = product.product_tmpl_id.id
         elif 'name' not in default:
-            default['name'] = product.name
+            # <GRAP> Disable mechanism that set the same name when
+            # we copy product.product model
+            pass
+            # default['name'] = product.name
+            # </GRAP>
 
         return super(product_product, self).copy(cr, uid, id, default=default, context=context)
 
