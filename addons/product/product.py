@@ -653,6 +653,9 @@ class product_template(osv.osv):
         if 'categ_id' in context and context['categ_id']:
             return context['categ_id']
         md = self.pool.get('ir.model.data')
+        # <GRAP> do not use 'All' category by default
+        return False
+        # </GRAP>
         res = False
         try:
             res = md.get_object_reference(cr, uid, 'product', 'product_category_all')[1]
