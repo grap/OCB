@@ -1175,7 +1175,7 @@ class product_product(osv.osv):
         elif 'name' not in default:
             # <GRAP> Disable mechanism that set the same name when
             # we copy product.product model
-            pass
+            default['name'] = '%s (Copy)' % product.name
             # default['name'] = product.name
             # </GRAP>
 
