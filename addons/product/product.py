@@ -654,7 +654,8 @@ class product_template(osv.osv):
             return context['categ_id']
         md = self.pool.get('ir.model.data')
         # <GRAP> do not use 'All' category by default
-        return False
+        if not context.get('install_mode', False):
+            return False
         # </GRAP>
         res = False
         try:
