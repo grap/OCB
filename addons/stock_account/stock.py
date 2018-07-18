@@ -20,6 +20,7 @@
 ##############################################################################
 
 from openerp.osv import fields, osv
+from openerp.tools.translate import _
 
 class stock_location_path(osv.osv):
     _inherit = "stock.location.path"
@@ -147,6 +148,17 @@ class stock_move(osv.osv):
             account_id = move.product_id.property_account_expense.id
             if not account_id:
                 account_id = move.product_id.categ_id.property_account_expense_categ.id
+        if not account_id:
+            raise osv.except_osv(_('Erreur'), _(
+                "Vous ne pouvez pas facturer cette operation de manutention"
+                " car un produit n'a pas de compte de revenu ou de depense"
+                " defini.\n\n"
+                " - Veuillez mettre ce produit dans une categorie normale\n"
+                " - Sinon, s'il s'agit d'un produit special, veuillez demander"
+                " a votre comptable de parametrer le produit correctement\n\n"
+                " * Produit : %s\n"
+                " * Categorie : %s" % (
+                    move.product_id.name, move.product_id.categ_id.name)))
         if 'fp_id' in context:
             fiscal_position = fp_obj.browse(cr, uid, context['fp_id']) if context['fp_id'] else False
         else:
