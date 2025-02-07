@@ -37,7 +37,7 @@ class AccountPayment(models.Model):
     move_id = fields.Many2one(
         comodel_name='account.move',
         string='Journal Entry', required=True, readonly=True, ondelete='cascade',
-        check_company=True)
+        check_company=False)
 
     is_reconciled = fields.Boolean(string="Is Reconciled", store=True,
         compute='_compute_reconciliation_status',
@@ -53,7 +53,7 @@ class AccountPayment(models.Model):
         readonly=False, store=True,
         compute='_compute_partner_bank_id',
         domain="[('id', 'in', available_partner_bank_ids)]",
-        check_company=True)
+        check_company=False)
     is_internal_transfer = fields.Boolean(string="Is Internal Transfer",
         readonly=False, store=True,
         compute="_compute_is_internal_transfer")
@@ -98,14 +98,14 @@ class AccountPayment(models.Model):
         store=True, readonly=False, ondelete='restrict',
         compute='_compute_partner_id',
         domain="['|', ('parent_id','=', False), ('is_company','=', True)]",
-        check_company=True)
+        check_company=False)
     destination_account_id = fields.Many2one(
         comodel_name='account.account',
         string='Destination Account',
         store=True, readonly=False,
         compute='_compute_destination_account_id',
         domain="[('user_type_id.type', 'in', ('receivable', 'payable')), ('company_id', '=', company_id)]",
-        check_company=True)
+        check_company=False)
 
     # == Stat buttons ==
     reconciled_invoice_ids = fields.Many2many('account.move', string="Reconciled Invoices",

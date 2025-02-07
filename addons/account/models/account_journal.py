@@ -19,7 +19,7 @@ class AccountJournalGroup(models.Model):
     name = fields.Char("Journal Group", required=True, translate=True)
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
     excluded_journal_ids = fields.Many2many('account.journal', string="Excluded Journals", domain="[('company_id', '=', company_id)]",
-        check_company=True)
+        check_company=False)
     sequence = fields.Integer(default=10)
 
 
@@ -72,7 +72,7 @@ class AccountJournal(models.Model):
         "Select 'General' for miscellaneous operations journals.")
     type_control_ids = fields.Many2many('account.account.type', 'journal_account_type_control_rel', 'journal_id', 'type_id', string='Allowed account types')
     account_control_ids = fields.Many2many('account.account', 'journal_account_control_rel', 'journal_id', 'account_id', string='Allowed accounts',
-        check_company=True,
+        check_company=False,
         domain="[('deprecated', '=', False), ('company_id', '=', company_id), ('is_off_balance', '=', False)]")
     default_account_type = fields.Many2one('account.account.type', compute="_compute_default_account_type")
     default_account_id = fields.Many2one(
@@ -82,7 +82,7 @@ class AccountJournal(models.Model):
                "'|', ('user_type_id', '=', default_account_type), ('user_type_id', 'in', type_control_ids),"
                "('user_type_id.type', 'not in', ('receivable', 'payable'))]")
     payment_debit_account_id = fields.Many2one(
-        comodel_name='account.account', check_company=True, copy=False, ondelete='restrict',
+        comodel_name='account.account', check_company=False, copy=False, ondelete='restrict',
         help="Incoming payments entries triggered by invoices/refunds will be posted on the Outstanding Receipts Account "
              "and displayed as blue lines in the bank reconciliation widget. During the reconciliation process, concerned "
              "transactions will be reconciled with entries on the Outstanding Receipts Account instead of the "
@@ -91,7 +91,7 @@ class AccountJournal(models.Model):
                              ('user_type_id.type', 'not in', ('receivable', 'payable')), \
                              '|', ('user_type_id', '=', %s), ('id', '=', default_account_id)]" % self.env.ref('account.data_account_type_current_assets').id)
     payment_credit_account_id = fields.Many2one(
-        comodel_name='account.account', check_company=True, copy=False, ondelete='restrict',
+        comodel_name='account.account', check_company=False, copy=False, ondelete='restrict',
         help="Outgoing payments entries triggered by bills/credit notes will be posted on the Outstanding Payments Account "
              "and displayed as blue lines in the bank reconciliation widget. During the reconciliation process, concerned "
              "transactions will be reconciled with entries on the Outstanding Payments Account instead of the "
@@ -100,7 +100,7 @@ class AccountJournal(models.Model):
                              ('user_type_id.type', 'not in', ('receivable', 'payable')), \
                              '|', ('user_type_id', '=', %s), ('id', '=', default_account_id)]" % self.env.ref('account.data_account_type_current_assets').id)
     suspense_account_id = fields.Many2one(
-        comodel_name='account.account', check_company=True, ondelete='restrict', readonly=False, store=True,
+        comodel_name='account.account', check_company=False, ondelete='restrict', readonly=False, store=True,
         compute='_compute_suspense_account_id',
         help="Bank statements transactions will be posted on the suspense account until the final reconciliation "
              "allowing finding the right account.", string='Suspense Account',
@@ -162,7 +162,7 @@ class AccountJournal(models.Model):
     at_least_one_inbound = fields.Boolean(compute='_methods_compute', store=True)
     at_least_one_outbound = fields.Boolean(compute='_methods_compute', store=True)
     profit_account_id = fields.Many2one(
-        comodel_name='account.account', check_company=True,
+        comodel_name='account.account', check_company=False,
         help="Used to register a profit when the ending balance of a cash register differs from what the system computes",
         string='Profit Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
@@ -170,7 +170,7 @@ class AccountJournal(models.Model):
                              ('user_type_id', 'in', %s)]" % [self.env.ref('account.data_account_type_revenue').id,
                                                              self.env.ref('account.data_account_type_other_income').id])
     loss_account_id = fields.Many2one(
-        comodel_name='account.account', check_company=True,
+        comodel_name='account.account', check_company=False,
         help="Used to register a loss when the ending balance of a cash register differs from what the system computes",
         string='Loss Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
@@ -182,7 +182,7 @@ class AccountJournal(models.Model):
     bank_account_id = fields.Many2one('res.partner.bank',
         string="Bank Account",
         ondelete='restrict', copy=False,
-        check_company=True,
+        check_company=False,
         domain="[('partner_id','=', company_partner_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     bank_statements_source = fields.Selection(selection=_get_bank_statements_available_sources, string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
     bank_acc_number = fields.Char(related='bank_account_id.acc_number', readonly=False)
@@ -202,12 +202,12 @@ class AccountJournal(models.Model):
 
     journal_group_ids = fields.Many2many('account.journal.group',
         domain="[('company_id', '=', company_id)]",
-        check_company=True,
+        check_company=False,
         string="Journal Groups")
 
     secure_sequence_id = fields.Many2one('ir.sequence',
         help='Sequence to use to ensure the securisation of data',
-        check_company=True,
+        check_company=False,
         readonly=True, copy=False)
 
     _sql_constraints = [

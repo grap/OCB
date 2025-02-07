@@ -169,7 +169,7 @@ class AccountMove(models.Model):
         help='If this checkbox is ticked, it means that the user was not sure of all the related information at the time of the creation of the move and that the move needs to be checked again.')
     journal_id = fields.Many2one('account.journal', string='Journal', required=True, readonly=True,
         states={'draft': [('readonly', False)]},
-        check_company=True, domain="[('id', 'in', suitable_journal_ids)]",
+        check_company=False, domain="[('id', 'in', suitable_journal_ids)]",
         default=_get_default_journal)
     suitable_journal_ids = fields.Many2many('account.journal', compute='_compute_suitable_journal_ids')
     company_id = fields.Many2one(comodel_name='res.company', string='Company',
@@ -185,7 +185,7 @@ class AccountMove(models.Model):
         states={'draft': [('readonly', False)]})
     partner_id = fields.Many2one('res.partner', readonly=True, tracking=True,
         states={'draft': [('readonly', False)]},
-        check_company=True,
+        check_company=False,
         string='Partner', change_default=True, ondelete='restrict')
     commercial_partner_id = fields.Many2one('res.partner', string='Commercial Entity', store=True, readonly=True,
         compute='_compute_commercial_partner_id', ondelete='restrict')
@@ -202,14 +202,14 @@ class AccountMove(models.Model):
     partner_bank_id = fields.Many2one('res.partner.bank', string='Recipient Bank',
         compute="_compute_partner_bank_id", store=True, readonly=False,
         help='Bank Account Number to which the invoice will be paid. A Company bank account if this is a Customer Invoice or Vendor Credit Note, otherwise a Partner bank account number.',
-        check_company=True)
+        check_company=False)
     payment_reference = fields.Char(string='Payment Reference', index=True, copy=False,
         compute='_compute_payment_reference', store=True, readonly=False,
         help="The payment reference to set on journal items.")
     payment_id = fields.Many2one(
         index=True,
         comodel_name='account.payment',
-        string="Payment", copy=False, check_company=True)
+        string="Payment", copy=False, check_company=False)
     statement_line_id = fields.Many2one(
         comodel_name='account.bank.statement.line',
         string="Statement Line", copy=False, check_company=True)
@@ -263,7 +263,7 @@ class AccountMove(models.Model):
 
     # ==== Reverse feature fields ====
     reversed_entry_id = fields.Many2one('account.move', string="Reversal of", readonly=True, copy=False,
-        check_company=True, index=True)
+        check_company=False, index=True)
     reversal_move_id = fields.One2many('account.move', 'reversed_entry_id')
 
     # =========================================================
@@ -273,7 +273,7 @@ class AccountMove(models.Model):
     # ==== Business fields ====
     fiscal_position_id = fields.Many2one('account.fiscal.position', string='Fiscal Position', readonly=True,
         states={'draft': [('readonly', False)]},
-        check_company=True,
+        check_company=False,
         domain="[('company_id', '=', company_id)]", ondelete="restrict",
         help="Fiscal positions are used to adapt taxes and accounts for particular customers or sales orders/invoices. "
              "The default value comes from the customer.")
@@ -312,7 +312,7 @@ class AccountMove(models.Model):
 
     # ==== Vendor bill fields ====
     invoice_vendor_bill_id = fields.Many2one('account.move', store=False,
-        check_company=True,
+        check_company=False,
         string='Vendor Bill',
         help="Auto-complete from a past bill.")
     invoice_source_email = fields.Char(string='Source Email', tracking=True)
@@ -3293,7 +3293,7 @@ class AccountMoveLine(models.Model):
     # ==== Business fields ====
     move_id = fields.Many2one('account.move', string='Journal Entry',
         index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
-        check_company=True,
+        check_company=False,
         help="The move of this entry line.")
     move_name = fields.Char(string='Number', related='move_id.name', store=True, index=True)
     date = fields.Date(related='move_id.date', store=True, readonly=True, index=True, copy=False, group_operator='min')
@@ -3308,7 +3308,7 @@ class AccountMoveLine(models.Model):
     account_id = fields.Many2one('account.account', string='Account',
         index=True, ondelete="cascade",
         domain="[('deprecated', '=', False), ('company_id', '=', 'company_id'),('is_off_balance', '=', False)]",
-        check_company=True,
+        check_company=False,
         tracking=True)
     account_internal_type = fields.Selection(related='account_id.user_type_id.type', string="Internal Type", readonly=True)
     account_internal_group = fields.Selection(related='account_id.user_type_id.internal_group', string="Internal Group", readonly=True)
@@ -3349,7 +3349,7 @@ class AccountMoveLine(models.Model):
     product_uom_category_id = fields.Many2one('uom.category', related='product_id.uom_id.category_id')
 
     # ==== Origin fields ====
-    reconcile_model_id = fields.Many2one('account.reconcile.model', string="Reconciliation Model", copy=False, readonly=True, check_company=True)
+    reconcile_model_id = fields.Many2one('account.reconcile.model', string="Reconciliation Model", copy=False, readonly=True, check_company=False)
     payment_id = fields.Many2one('account.payment', index=True, store=True,
         string="Originator Payment",
         related='move_id.payment_id',
@@ -3366,7 +3366,7 @@ class AccountMoveLine(models.Model):
         comodel_name='account.tax',
         string="Taxes",
         context={'active_test': False},
-        check_company=True,
+        check_company=False,
         help="Taxes that apply on the base amount")
     tax_line_id = fields.Many2one('account.tax', string='Originator Tax', ondelete='restrict', store=True,
         compute='_compute_tax_line_id', help="Indicates that this journal item is a tax line")
@@ -3381,7 +3381,7 @@ class AccountMoveLine(models.Model):
              " on taxes, some will become exigible only when the payment is recorded.")
     tax_repartition_line_id = fields.Many2one(comodel_name='account.tax.repartition.line',
         string="Originator Tax Distribution Line", ondelete='restrict', readonly=True,
-        check_company=True,
+        check_company=False,
         help="Tax distribution line that caused the creation of this move line, if any")
     tax_tag_ids = fields.Many2many(string="Tags", comodel_name='account.account.tag', ondelete='restrict', context={'active_test': False},
         help="Tags assigned to this line by the tax creating it, if any. It determines its impact on financial reports.", tracking=True)
@@ -3406,9 +3406,9 @@ class AccountMoveLine(models.Model):
     # ==== Analytic fields ====
     analytic_line_ids = fields.One2many('account.analytic.line', 'move_id', string='Analytic lines')
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account',
-        index=True, compute="_compute_analytic_account_id", store=True, readonly=False, check_company=True, copy=True)
+        index=True, compute="_compute_analytic_account_id", store=True, readonly=False, check_company=False, copy=True)
     analytic_tag_ids = fields.Many2many('account.analytic.tag', string='Analytic Tags',
-        compute="_compute_analytic_tag_ids", store=True, readonly=False, check_company=True, copy=True)
+        compute="_compute_analytic_tag_ids", store=True, readonly=False, check_company=False, copy=True)
 
     # ==== Onchange / display purpose fields ====
     recompute_tax_line = fields.Boolean(store=False, readonly=True,
